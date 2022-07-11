@@ -4,6 +4,7 @@
 #include "SInteractionComponent.h"
 #include "SGameplayInterface.h"
 #include "DrawDebugHelpers.h"
+#include "Camera/PlayerCameraManager.h"
 
 
 // Sets default values for this component's properties
@@ -43,21 +44,20 @@ void USInteractionComponent::PrimaryInteract()
 
 	AActor* MyOwner = GetOwner();
 
-	FVector EyeLocation;
-	FRotator EyeRotation;
-	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+	APlayerCameraManager* CurrentCamera = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+	FVector CameraLoc = CurrentCamera->GetCameraLocation();
 
-	FVector End = EyeLocation + (EyeRotation.Vector() * 1000);
+	FRotator ControlRot = GetWorld()->GetFirstPlayerController()->GetControlRotation();
 
-	//FHitResult Hit;
-	//bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);
+	FVector Start = CameraLoc;
+	FVector End = CameraLoc + ControlRot.Vector() * 1000;
 
 	TArray<FHitResult> Hits;
 	float Radius = 30.0f;
 	FCollisionShape Shape;
 	Shape.SetSphere(Radius);
 
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity, ObjectQueryParams, Shape);
+	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, Start, End, FQuat::Identity, ObjectQueryParams, Shape);
 
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 
@@ -75,9 +75,9 @@ void USInteractionComponent::PrimaryInteract()
 			}
 		}
 
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);
+		//DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);
 	}
 
-	DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);
+	//DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
 
 }
